@@ -1,9 +1,9 @@
 class Home extends React.Component {
     constructor (props) {
       super()
-      this.handleSubmit = this.handleSubmit.bind(this);
-      this.handleChange = this.handleChange.bind(this)
-      this.handleBack = this.handleBack.bind(this)
+      this.onSubmitQuery = this.onSubmitQuery.bind(this);
+      this.handleSearchInput = this.handleSearchInput.bind(this)
+      this.onSearchAgain = this.onSearchAgain.bind(this)
     }
 
     state = {
@@ -19,12 +19,12 @@ class Home extends React.Component {
         console.log('home mounted')
     }
 
-    handleChange(event) {
+    handleSearchInput(event) {
         console.log("the input is:", event.target.value)
         this.setState( {input: event.target.value} )
     }
     
-    handleSubmit(event) {
+    onSubmitQuery(event) {
         // console.log("submitting input as:", this.state.input)
         // var userInput = this.state.input;
         // var searchResults = this.props.results.filter( movie => {
@@ -38,7 +38,7 @@ class Home extends React.Component {
         this.setState( {hasSearched: true} )
     }
 
-    handleBack(event) {
+    onSearchAgain(event) {
         this.setState( {hasSearched: false, input: ""} )
         // resets the input field upon pressing 'back'
     }
@@ -46,9 +46,9 @@ class Home extends React.Component {
     render() {
 
         if (this.state.hasSearched) {
-            var display = <Results input={this.state.input} handleBack={this.handleBack} />
+            var display = <Results input={this.state.input} onSearchAgain={this.onSearchAgain} />
         } else {
-            var display = <Search input={this.state.input} handleChange={this.handleChange} handleSubmit={this.handleSubmit} />
+            var display = <Search input={this.state.input} handleSearchInput={this.handleSearchInput} onSubmitQuery={this.onSubmitQuery} />
         }
 
         return (
@@ -77,8 +77,8 @@ class Search extends React.Component {
     render() {
         return (
             <div className="text-center">
-                <input onChange={this.props.handleChange} value={this.props.input} className="form-control" placeholder="Enter A Movie Title" ></input>
-                <button onClick={this.props.handleSubmit} type="submit" className="btn btn-primary" >Submit</button>
+                <input onChange={this.props.handleSearchInput} value={this.props.input} className="form-control" placeholder="Enter A Movie Title" ></input>
+                <button onClick={this.props.onSubmitQuery} type="submit" className="btn btn-primary" >Submit</button>
             </div>
         )
     }
@@ -96,39 +96,40 @@ class Results extends React.Component {
 
     componentDidMount() {
 
-        console.log('results has mounted');
-        console.log('user input is', this.props.input);
+        console.log('results is mounted');
+        console.log('results is sending an ajax request with the query of', this.props.input);
 
         var url = "http://api.tvmaze.com/search/shows?q=" + this.props.input;
 
-        fetch(url)
-        .then(res => res.json())
-        .then(
-            (result) => {
-            this.setState({
-                movies: result,
-            });
-            },
-            (error) => {
-                console.log(error)
-            }
-        )
+        // fetch(url)
+        // .then(res => res.json())
+        // .then(
+        //     (result) => {
+        //     console.log('ajax request received')
+        //     this.setState({
+        //         movies: result,
+        //     });
+        //     },
+        //     (error) => {
+        //         console.log(error)
+        //     }
+        // )
 
-        // var manipulateData = (data) => {
-        //     this.setState( {movies: data} )
-        // }
+        var manipulateData = (data) => {
+            this.setState( {movies: data} )
+        }
 
-        // var responseHandler = function() {
-        //     var data = JSON.parse(this.responseText);
-        //     Cannot use this.manipulateData, 'this' does not work...
-        //     manipulateData(data);
-        // };
+        var responseHandler = function() {
+            var data = JSON.parse(this.responseText);
+            // Cannot use this.manipulateData, 'this' does not work...
+            manipulateData(data);
+        };
       
-        // var request = new XMLHttpRequest();
-        // var url = "http://api.tvmaze.com/search/shows?q=" + encodeURIComponent(this.props.input);
-        // request.addEventListener("load", responseHandler);
-        // request.open("GET", url);
-        // request.send();
+        var request = new XMLHttpRequest();
+        var url = "http://api.tvmaze.com/search/shows?q=" + encodeURIComponent(this.props.input);
+        request.addEventListener("load", responseHandler);
+        request.open("GET", url);
+        request.send();
     }
 
     componentDidUpdate() {
@@ -149,7 +150,7 @@ class Results extends React.Component {
 
         return (
             <div>
-                <button onClick={this.props.handleBack} type="submit" className="btn btn-primary" >Go Back</button>
+                <button onClick={this.props.onSearchAgain} type="submit" className="btn btn-primary" >Go Back</button>
                 <ul>{allShows}</ul>
             </div>
         )
